@@ -38,6 +38,14 @@ class ParserClass:
 		for cell in table_row.findAll('td'):
 			print cell.getText()
 
+
+	def get_all_column(self,table_content):
+		
+		for row in table_content.findAll('tr'):
+			for cell in row.findAll('td'):
+				print cell.getText()
+
+
 		
 
 
@@ -47,4 +55,5 @@ class ParserClass:
 html_analysis = ParserClass("data.htm")
 parsed_table = html_analysis.get_table("Unaudited Condensed Consolidated Interim Statements")
 html_analysis.get_heading_column(parsed_table.find('tr'))
+html_analysis.get_all_column(parsed_table)
 #print parsed_table
