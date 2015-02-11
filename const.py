@@ -1,0 +1,1 @@
+table_name = ["Unaudited Condensed Consolidated Interim Statements of Comprehensive Income","Unaudited Condensed Consolidated Interim Balance"]
