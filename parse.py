@@ -1,6 +1,8 @@
 from bs4 import BeautifulSoup
 from lxml import etree
+import xlrd
 from xlrd import open_workbook
+from datetime import datetime
 import re
 import const
 
@@ -56,7 +58,8 @@ class ParserClass:
 		self.work_book = open_workbook(excel_name)
 		self.sheet = self.work_book.sheet_by_name(sheet_name);
 		print 'Sheet Added:',self.sheet.name
-		print self.sheet.row(0)
+		print xlrd.xldate_as_tuple(self.sheet.cell(0,1).value,self.work_book.datemode)
+		print self.sheet.cell(0,1).value
 		for row in range(self.sheet.nrows):
 			temp_list = []
 		 	for col in range(1,self.sheet.ncols):
