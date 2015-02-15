@@ -10,6 +10,8 @@ class ParserClass:
 	file_content = ''
 	work_book = ''
 	sheet = ''
+	dict_from_html = {}
+	dict_from_workbook = {}
 
 	def __init__(self,html_file):
 		i=0
@@ -54,6 +56,17 @@ class ParserClass:
 		self.work_book = open_workbook(excel_name)
 		self.sheet = self.work_book.sheet_by_name(sheet_name);
 		print 'Sheet Added:',self.sheet.name
+		print self.sheet.row(0)
+		for row in range(self.sheet.nrows):
+			temp_list = []
+		 	for col in range(1,self.sheet.ncols):
+			 	if self.sheet.cell(row,col).value:
+		 			temp_list.append(self.sheet.cell(row,col).value)
+		 	self.dict_from_workbook[self.sheet.cell(row,0)] = temp_list
+		print self.dict_from_workbook
+
+
+
 
 
 	def check_for_month_year_in_html(self,month,year):
@@ -63,7 +76,18 @@ class ParserClass:
 					if str(year) in each_header:
 						print each_header
 
-
+	def form_dict_from_html(self,table_content):
+		for row in table_content.findAll('tr'):
+			row_cells = row.findAll('td');
+			temp_list = []
+			length = len(row_cells)
+			for i in range(1,length):
+				temp_list.append(row_cells[i].getText().replace('\n', '').replace('\r', '').replace('       ',' ').replace('     ',' '))
+			self.dict_from_html[row_cells[0].getText().replace('\n', '').replace('\r', '').replace('       ',' ').replace('     ',' ')] = temp_list
+			#self.dict_from_html.setdefault(row_cells[0].getText().replace('\n', '').replace('\r', '').replace('       ',' ').replace('     ',' '), temp_list)
+			print self.dict_from_html
+			# for cell in row.findAll('td'):
+			# 	print cell.getText().replace('\n', '').replace('\r', '').replace('       ',' ').replace('     ',' ')
 
 
 
@@ -86,7 +110,7 @@ class ParserClass:
 html_analysis = ParserClass("data.htm")
 parsed_table = html_analysis.get_table("Unaudited Condensed Consolidated Interim Statements")
 heading_row = html_analysis.get_heading_row(parsed_table.find('tr'))
-#html_analysis.get_all_column(parsed_table)
+#html_analysis.form_dict_from_html(parsed_table)
 html_analysis.read_excel('Model.xlsx','html')
 html_analysis.check_for_month_year_in_html('september',2013)
 print html_analysis.file_header
