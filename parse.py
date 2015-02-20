@@ -14,6 +14,8 @@ class ParserClass:
 	sheet = ''
 	dict_from_html = {}
 	dict_from_workbook = {}
+	index_of_current_year_in_html = ''
+	index_of_previous_year_in_html = ''
 
 	def __init__(self,html_file):
 		i=0
@@ -25,21 +27,7 @@ class ParserClass:
 		para = self.file_content.find('p',text=re.compile(table_heading))
 		required_table = para.find_next_sibling('table');
 		return required_table
-		#results = {}
-		#for row in required_table.findAll('tr'):
-		#     aux = row.findAll('td')
-		#     print aux.text()
 
-		# print results
-		#print(para.find_next_sibling('p').getText())
-		#while(para.find_next_sibling('p') not in const.table_name):
-			#para = para.find_next_sibling('p')
-			#print(para.find_next_sibling('p').getText())
-			
-			
-		# print(self.file_content.body.find_next_siblings('p'))
-		# print(self.file_content.body.find_next_siblings('p'))
-		#print(self.file_content.contents)
 
 	def get_heading_row(self,table_row):
 		for cell in table_row.findAll('td'):
@@ -71,13 +59,43 @@ class ParserClass:
 
 
 
-
-	def check_for_month_year_in_html(self,month,year):
+	#month and year for which the value should be generated is passed here
+	def month_year_in_html(self,month,year):
+		temp_list_to_store_month_and_year_index = []
 		for each_header in self.file_header:
 			for each_name in const.month_dict[month]:
 				if each_name in each_header:
-					if str(year) in each_header:
-						print each_header
+					if (str(year) in each_header or str(year+2000) in each_header):
+						temp_list_to_store_month_and_year_index.append(self.file_header.index(each_header))
+		if len(temp_list_to_store_month_and_year_index) == 0:
+			print "no data matching the given input year"
+		elif len(temp_list_to_store_month_and_year_index) > 1:
+			for val in temp_list_to_store_month_and_year_index:
+				if str('Three') in self.file_header[val]:
+					self.index_of_current_year_in_html = val
+		else:
+			self.index_of_current_year_in_html = temp_list_to_store_month_and_year_index[1]
+		temp_list_to_store_month_and_year_index = []
+		for each_header in self.file_header:
+			for each_name in const.month_dict[month]:
+				if each_name in each_header:
+					if (str(year-1) in each_header or str(year+2000-1) in each_header):
+						temp_list_to_store_month_and_year_index.append(self.file_header.index(each_header))
+		if len(temp_list_to_store_month_and_year_index) == 0:
+			print "no data matching the given input year"
+		elif len(temp_list_to_store_month_and_year_index) > 1:
+			for val in temp_list_to_store_month_and_year_index:
+				if str('Three') in self.file_header[val]:
+					self.index_of_previous_year_in_html = val
+		else:
+			self.index_of_previous_year_in_html = temp_list_to_store_month_and_year_index[1]
+		print self.index_of_previous_year_in_html
+		print self.index_of_current_year_in_html
+		
+
+
+
+
 
 	def form_dict_from_html(self,table_content):
 		for row in table_content.findAll('tr'):
@@ -94,15 +112,6 @@ class ParserClass:
 
 
 
-		# values = []
-		# for row in range(s.nrows):
-			
-		#  	#for col in range(s.ncols):
-		#  	if s.cell(row,0).value:
-	 # 			values.append(s.cell(row,0).value)
-		# print str(values)
-			 
-
 
 		
 
@@ -115,6 +124,6 @@ parsed_table = html_analysis.get_table("Unaudited Condensed Consolidated Interim
 heading_row = html_analysis.get_heading_row(parsed_table.find('tr'))
 #html_analysis.form_dict_from_html(parsed_table)
 html_analysis.read_excel('Model.xlsx','html')
-html_analysis.check_for_month_year_in_html('september',2013)
-print html_analysis.file_header
+html_analysis.month_year_in_html('9',14)
+#print html_analysis.file_header
 #print parsed_table
