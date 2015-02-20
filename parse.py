@@ -16,6 +16,7 @@ class ParserClass:
 	dict_from_workbook = {}
 	index_of_current_year_in_html = ''
 	index_of_previous_year_in_html = ''
+	index_of_previous_year_in_html = ''
 
 	def __init__(self,html_file):
 		i=0
@@ -46,16 +47,16 @@ class ParserClass:
 		self.work_book = open_workbook(excel_name)
 		self.sheet = self.work_book.sheet_by_name(sheet_name);
 		print 'Sheet Added:',self.sheet.name
-		print xlrd.xldate_as_tuple(self.sheet.cell(0,1).value,self.work_book.datemode)
-		print self.sheet.cell(0,1).value
+		#print xlrd.xldate_as_tuple(self.sheet.cell(0,1).value,self.work_book.datemode)
+		#print self.sheet.cell(0,1).value
 		for row in range(self.sheet.nrows):
 			temp_list = []
 		 	for col in range(1,self.sheet.ncols):
 			 	if self.sheet.cell(row,col).value:
 		 			temp_list.append(self.sheet.cell(row,col).value)
-		 	self.dict_from_workbook[self.sheet.cell(row,0)] = temp_list
+		 	temp_list.insert(0,str(self.sheet.cell(row,0).value.strip()))
+		 	self.dict_from_workbook[self.sheet.cell(row,0).value.strip()] = temp_list
 		print self.dict_from_workbook
-
 
 
 
@@ -103,13 +104,22 @@ class ParserClass:
 			temp_list = []
 			length = len(row_cells)
 			for i in range(1,length):
-				temp_list.append(row_cells[i].getText().replace('\n', '').replace('\r', '').replace('       ',' ').replace('     ',' '))
-			self.dict_from_html[row_cells[0].getText().replace('\n', '').replace('\r', '').replace('       ',' ').replace('     ',' ')] = temp_list
+				temp_list.append(row_cells[i].getText().replace('\n', '').replace('\r', '').replace('       ',' ').replace('     ',' ').strip())
+			temp_list.insert(0,str(self.get_common_word_matching_key(row_cells[0].getText().replace('\n', '').replace('\r', '').replace('       ',' ').replace('     ',' ').strip())))
+
+			self.dict_from_html[row_cells[0].getText().replace('\n', '').replace('\r', '').replace('       ',' ').replace('     ',' ').strip()] = temp_list
 			#self.dict_from_html.setdefault(row_cells[0].getText().replace('\n', '').replace('\r', '').replace('       ',' ').replace('     ',' '), temp_list)
-			print self.dict_from_html
+		print self.dict_from_html
 			# for cell in row.findAll('td'):
 			# 	print cell.getText().replace('\n', '').replace('\r', '').replace('       ',' ').replace('     ',' ')
 
+	def get_common_word_matching_key(self,word):
+		common_word = ''
+		for key,each_word in const.common_word.iteritems():
+			if word in each_word:
+				common_word = key
+
+		return common_word
 
 
 
@@ -122,7 +132,7 @@ class ParserClass:
 html_analysis = ParserClass("data.htm")
 parsed_table = html_analysis.get_table("Unaudited Condensed Consolidated Interim Statements")
 heading_row = html_analysis.get_heading_row(parsed_table.find('tr'))
-#html_analysis.form_dict_from_html(parsed_table)
+html_analysis.form_dict_from_html(parsed_table)
 html_analysis.read_excel('Model.xlsx','html')
 html_analysis.month_year_in_html('9',14)
 #print html_analysis.file_header

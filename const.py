@@ -15,3 +15,21 @@ month_dict = {
     '11' : ['nov','november'],
     '12' : ['dec','december']
     }
+
+common_word = {
+	'Revenues' : ['revenue','Revenue','Revenues'],
+	'Cost of sales' : ['Cost of sales'],
+	'Gross profit' : ['Gross profit'],
+	'Operating expenses' : ['Operating expenses:','Operating expenses'],
+	'Selling and marketing expenses' : ['Selling and marketing expenses','S&M Expense'],
+	'Administrative expenses' : ['Administrative expenses','Administrative exp.'],
+	'Total operating expenses' : ['Total operating expenses','Total Opex'],
+	'Other Net Income' : ['Other income, net','Other income, net'],
+	'Profit before income taxes' : ['Profit before income taxes','PBT'],
+	'Income Tax' : ['Income tax expense','Tax'],
+	'Net profit' : ['Net profit','PAT'],
+	'Basic EPS' : ['Basic EPS','Basic ($)'],
+	'Diluted EPS' : ['Diluted EPS','Diluted ($)'],
+	'Basic' : ['Basic'],
+	'Diluted' : ['Diluted']
+}
