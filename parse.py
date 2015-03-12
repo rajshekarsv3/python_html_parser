@@ -9,6 +9,7 @@ import const
 
 class ParserClass:
 	file_header = []
+	keys_in_html = []
 	file_content = ''
 	work_book = ''
 	sheet = ''
@@ -16,7 +17,9 @@ class ParserClass:
 	dict_from_workbook = {}
 	index_of_current_year_in_html = ''
 	index_of_previous_year_in_html = ''
-	index_of_previous_year_in_html = ''
+	index_of_previous_year_in_xls = ''
+	index_of_current_year_in_xls = ''
+	keys_in_excel = []
 
 	def __init__(self,html_file):
 		i=0
@@ -47,6 +50,7 @@ class ParserClass:
 		self.work_book = open_workbook(excel_name)
 		self.sheet = self.work_book.sheet_by_name(sheet_name);
 		print 'Sheet Added:',self.sheet.name
+	
 		#print xlrd.xldate_as_tuple(self.sheet.cell(0,1).value,self.work_book.datemode)
 		#print self.sheet.cell(0,1).value
 		for row in range(self.sheet.nrows):
@@ -54,9 +58,11 @@ class ParserClass:
 		 	for col in range(1,self.sheet.ncols):
 			 	if self.sheet.cell(row,col).value:
 		 			temp_list.append(self.sheet.cell(row,col).value)
-		 	temp_list.insert(0,str(self.sheet.cell(row,0).value.strip()))
+		 	common_word = str(self.get_common_word_matching_key(self.sheet.cell(row,0).value.strip()))
+		 	temp_list.insert(0,common_word)
+		 	self.keys_in_excel.append(common_word)
 		 	self.dict_from_workbook[self.sheet.cell(row,0).value.strip()] = temp_list
-		print self.dict_from_workbook
+		print self.keys_in_excel
 
 
 
@@ -90,8 +96,7 @@ class ParserClass:
 					self.index_of_previous_year_in_html = val
 		else:
 			self.index_of_previous_year_in_html = temp_list_to_store_month_and_year_index[1]
-		print self.index_of_previous_year_in_html
-		print self.index_of_current_year_in_html
+		
 		
 
 
@@ -105,13 +110,12 @@ class ParserClass:
 			length = len(row_cells)
 			for i in range(1,length):
 				temp_list.append(row_cells[i].getText().replace('\n', '').replace('\r', '').replace('       ',' ').replace('     ',' ').strip())
-			temp_list.insert(0,str(self.get_common_word_matching_key(row_cells[0].getText().replace('\n', '').replace('\r', '').replace('       ',' ').replace('     ',' ').strip())))
-
+			common_word = str(self.get_common_word_matching_key(row_cells[0].getText().replace('\n', '').replace('\r', '').replace('       ',' ').replace('     ',' ').strip()))
+			temp_list.insert(0,common_word)
+			self.keys_in_html.append(common_word)
 			self.dict_from_html[row_cells[0].getText().replace('\n', '').replace('\r', '').replace('       ',' ').replace('     ',' ').strip()] = temp_list
-			#self.dict_from_html.setdefault(row_cells[0].getText().replace('\n', '').replace('\r', '').replace('       ',' ').replace('     ',' '), temp_list)
-		print self.dict_from_html
-			# for cell in row.findAll('td'):
-			# 	print cell.getText().replace('\n', '').replace('\r', '').replace('       ',' ').replace('     ',' ')
+		print self.keys_in_html
+			
 
 	def get_common_word_matching_key(self,word):
 		common_word = ''
@@ -121,6 +125,25 @@ class ParserClass:
 
 		return common_word
 
+	def month_year_in_excel(self,month,year):
+		temp_list = []
+		index = 0
+		previous_year = year-1
+		
+		for cell in self.sheet.row(0):
+			if cell.value:
+				temp_list = xlrd.xldate_as_tuple(cell.value,self.work_book.datemode)
+				if(temp_list[0]==previous_year and temp_list[1]==month):
+					self.index_of_previous_year_in_xls = index
+				if(temp_list[0]==year and temp_list[1]==month):
+					self.index_of_current_year_in_xls = index
+			index += 1
+	
+	def display_difference(self):
+		print "Elements present in html but not in excel########"
+		print list(set(self.keys_in_html)-set(self.keys_in_excel))
+		print "Elements present in Excel but not in html########"		
+		print list(set(self.keys_in_excel)-set(self.keys_in_html))
 
 
 		
@@ -135,5 +158,7 @@ heading_row = html_analysis.get_heading_row(parsed_table.find('tr'))
 html_analysis.form_dict_from_html(parsed_table)
 html_analysis.read_excel('Model.xlsx','html')
 html_analysis.month_year_in_html('9',14)
+html_analysis.month_year_in_excel(9,2014)
+html_analysis.display_difference()
 #print html_analysis.file_header
 #print parsed_table

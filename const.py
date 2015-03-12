@@ -31,5 +31,6 @@ common_word = {
 	'Basic EPS' : ['Basic EPS','Basic ($)'],
 	'Diluted EPS' : ['Diluted EPS','Diluted ($)'],
 	'Basic' : ['Basic'],
-	'Diluted' : ['Diluted']
+	'Diluted' : ['Diluted'],
+	'Demo' : ['Demo']
 }
