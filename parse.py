@@ -2,9 +2,11 @@ from bs4 import BeautifulSoup
 from lxml import etree
 import xlrd
 from xlrd import open_workbook
+from xlwt import easyxf
 from datetime import datetime
 import re
 import const
+from xlutils.copy import copy
 
 
 class ParserClass:
@@ -20,6 +22,7 @@ class ParserClass:
 	index_of_previous_year_in_xls = ''
 	index_of_current_year_in_xls = ''
 	keys_in_excel = []
+	sheet_index = ''
 
 	def __init__(self,html_file):
 		i=0
@@ -29,7 +32,12 @@ class ParserClass:
 
 	def get_table(self,table_heading):
 		para = self.file_content.find('p',text=re.compile(table_heading))
-		required_table = para.find_next_sibling('table');
+		print para;
+		if(para):
+			required_table = para.find_next_sibling('table');
+		else:
+			print 'No table with Given name'
+			return 0
 		return required_table
 
 
@@ -46,9 +54,10 @@ class ParserClass:
 				print cell.getText().replace('\n', '').replace('\r', '').replace('       ',' ').replace('     ',' ')
 
 
-	def read_excel(self,excel_name,sheet_name):
+	def read_excel(self,excel_name,sheet_index):
+		self.sheet_index = sheet_index
 		self.work_book = open_workbook(excel_name)
-		self.sheet = self.work_book.sheet_by_name(sheet_name);
+		self.sheet = self.work_book.sheet_by_index(sheet_index);
 		print 'Sheet Added:',self.sheet.name
 	
 		#print xlrd.xldate_as_tuple(self.sheet.cell(0,1).value,self.work_book.datemode)
@@ -97,12 +106,6 @@ class ParserClass:
 		else:
 			self.index_of_previous_year_in_html = temp_list_to_store_month_and_year_index[1]
 		
-		
-
-
-
-
-
 	def form_dict_from_html(self,table_content):
 		for row in table_content.findAll('tr'):
 			row_cells = row.findAll('td');
@@ -138,6 +141,10 @@ class ParserClass:
 				if(temp_list[0]==year and temp_list[1]==month):
 					self.index_of_current_year_in_xls = index
 			index += 1
+		print self.index_of_current_year_in_xls
+		if(not self.index_of_current_year_in_xls):
+			self.index_of_current_year_in_xls=index+1;
+		print self.index_of_current_year_in_xls
 	
 	def display_difference(self):
 		print "Elements present in html but not in excel########"
@@ -145,6 +152,29 @@ class ParserClass:
 		print "Elements present in Excel but not in html########"		
 		print list(set(self.keys_in_excel)-set(self.keys_in_html))
 
+	def write_sheet(self):
+		copy_work_book = copy(self.work_book);
+		write_sheet = copy_work_book.get_sheet(self.sheet_index)
+		
+		for row in range(self.sheet.nrows):
+			if self.sheet.cell(row,0).value:
+				common_word=str(self.get_common_word_matching_key(self.sheet.cell(row,0).value.strip()))
+				index = self.get_index_from_html_dict(common_word)
+				write_sheet.write(row,self.index_of_current_year_in_xls,self.dict_from_html[index][self.index_of_current_year_in_html])
+				print self.dict_from_html[index][self.index_of_current_year_in_html]
+		copy_work_book.save('output.xls')
+		#  	common_word = str(self.get_common_word_matching_key(self.sheet.cell(row,0).value.strip()))
+		#  	temp_list.insert(0,common_word)
+		#  	self.keys_in_excel.append(common_word)
+		#  	self.dict_from_workbook[self.sheet.cell(row,0).value.strip()] = temp_list
+
+	def get_index_from_html_dict(self,common_word):
+		result = ''
+		for key,each_word in self.dict_from_html.iteritems():
+			if common_word in each_word:
+				result = key
+
+		return result
 
 		
 
@@ -153,12 +183,14 @@ class ParserClass:
 
 
 html_analysis = ParserClass("data.htm")
-parsed_table = html_analysis.get_table("Unaudited Condensed Consolidated Interim Statements")
-heading_row = html_analysis.get_heading_row(parsed_table.find('tr'))
-html_analysis.form_dict_from_html(parsed_table)
-html_analysis.read_excel('Model.xlsx','html')
-html_analysis.month_year_in_html('9',14)
-html_analysis.month_year_in_excel(9,2014)
-html_analysis.display_difference()
-#print html_analysis.file_header
+parsed_table = html_analysis.get_table("Unaudited Condensed Consolidated Interim Statement")
+if(parsed_table!=0):
+	heading_row = html_analysis.get_heading_row(parsed_table.find('tr'))
+	html_analysis.form_dict_from_html(parsed_table)
+	html_analysis.read_excel('Model.xlsx',1)
+	html_analysis.month_year_in_html('9',14)
+	html_analysis.month_year_in_excel(9,2014)
+	html_analysis.display_difference()
+	html_analysis.write_sheet()
+	#print html_analysis.file_header
 #print parsed_table
