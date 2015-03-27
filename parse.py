@@ -31,10 +31,14 @@ class ParserClass:
 		self.file_content = BeautifulSoup(data, "lxml")
 
 	def get_table(self,table_heading):
-		para = self.file_content.find('p',text=re.compile(table_heading))
+		para = self.file_content.find('div',text=re.compile(table_heading))
 		print para;
 		if(para):
 			required_table = para.find_next_sibling('table');
+			if(not required_table):
+				next_sibling = para.parent.find_next_sibling('div');
+				required_table = next_sibling.find('table')
+				print required_table
 		else:
 			print 'No table with Given name'
 			return 0
@@ -133,8 +137,9 @@ class ParserClass:
 		index = 0
 		previous_year = year-1
 		
-		for cell in self.sheet.row(0):
-			if cell.value:
+		for cell in self.sheet.row(2):
+			
+			if cell.value and cell.ctype==3:
 				temp_list = xlrd.xldate_as_tuple(cell.value,self.work_book.datemode)
 				if(temp_list[0]==previous_year and temp_list[1]==month):
 					self.index_of_previous_year_in_xls = index
@@ -182,12 +187,12 @@ class ParserClass:
 
 
 
-html_analysis = ParserClass("data.htm")
-parsed_table = html_analysis.get_table("Unaudited Condensed Consolidated Interim Statement")
+html_analysis = ParserClass("new.html")
+parsed_table = html_analysis.get_table("Condensed Consolidated Statements of Operations")
 if(parsed_table!=0):
 	heading_row = html_analysis.get_heading_row(parsed_table.find('tr'))
 	html_analysis.form_dict_from_html(parsed_table)
-	html_analysis.read_excel('Model.xlsx',1)
+	html_analysis.read_excel('ELX.xlsx',0)
 	html_analysis.month_year_in_html('9',14)
 	html_analysis.month_year_in_excel(9,2014)
 	html_analysis.display_difference()
